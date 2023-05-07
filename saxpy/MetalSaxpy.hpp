@@ -21,15 +21,15 @@ class MetalSaxpy{
     MTL::Buffer *_mR;
     MTL::Buffer *_mNumElems;
 
-    int _mNumGroupsPerGrid;
-    int _mNumThreadsPerGroup;
+    int _mThreadsPerGrid;
+    int _mNumThreadsPerThreadgroup;
 
     MetalSaxpy(MTL::Device *device);
     ~MetalSaxpy();
 
     bool areEqual(float a, float b);
     void prepareData();
-    void sendComputeCommand(int num_metal_threadgroups_per_grid, int num_groups_per_grid);
+    void sendComputeCommand();
     void verifyResults();
 
     private:

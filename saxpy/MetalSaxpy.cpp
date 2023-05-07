@@ -40,9 +40,9 @@ bool MetalSaxpy::areEqual(float a, float b) {
     return (fabs(a - b) <= FLT_EPSILON * std::max(1.0f, std::max(a, b)));
 }
 
-void MetalSaxpy::sendComputeCommand(int num_metal_threadgroups_per_grid, int num_groups_per_grid){
-    _mNumThreadsPerGroup = num_metal_threadgroups_per_grid;
-    _mNumGroupsPerGrid = num_groups_per_grid;
+void MetalSaxpy::sendComputeCommand(){
+    _mNumThreadsPerThreadgroup = _mSaxpyFunctionPSO->maxTotalThreadsPerThreadgroup();
+    _mThreadsPerGrid = arrayLength;
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     assert(commandBuffer != nullptr);
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
@@ -61,16 +61,12 @@ void MetalSaxpy::encodeSaxpyCommand(MTL::ComputeCommandEncoder *computeEncoder){
     computeEncoder->setBuffer(_ma, 0, 2);
     computeEncoder->setBuffer(_mR, 0, 3);
     computeEncoder->setBuffer(_mNumElems, 0, 4);
-    MTL::Size gridSize = MTL::Size::Make(arrayLength, 1, 1);
-    NS::UInteger AvlThreadGroupSize = _mSaxpyFunctionPSO->maxTotalThreadsPerThreadgroup();
     // if(AvlThreadGroupSize > arrayLength){
     //     AvlThreadGroupSize = arrayLength;
     // }
 
-    MTL::Size groups = MTL::Size::Make(_mNumGroupsPerGrid, 1, 1);
-    MTL::Size threadsper = MTL::Size::Make(_mNumThreadsPerGroup, 1, 1);
-
-    computeEncoder->dispatchThreads(groups, threadsper);
+    computeEncoder->dispatchThreads(MTL::Size::Make(_mThreadsPerGrid, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
+    // computeEncoder->dispatchThreadgroups(MTL::Size::Make(_mThreadsPerGrid, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
 }
 
 void MetalSaxpy::generateRandomFloatData(MTL::Buffer *buffer){

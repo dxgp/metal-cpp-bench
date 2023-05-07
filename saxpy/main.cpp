@@ -39,11 +39,11 @@ int main(){
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
     MetalSaxpy *saxpy = new MetalSaxpy(device);
     std::cout<<"Sending compute command"<<std::endl;
-    saxpy->sendComputeCommand(1024, saxpy->arrayLength/1024);
+    saxpy->sendComputeCommand();
     std::cout<<"Compute command done. Beginning verification"<<std::endl;
     saxpy->verifyResults();
     std::cout<<"Verification complete"<<std::endl;
-    uint64_t sizes[] = {(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
+    uint64_t sizes[] = {(uint64_t)2048, (uint64_t)2097152, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
     int repeats =  100;
     auto durations = new float[repeats];
     auto durations_blas = new float[repeats];
@@ -60,7 +60,7 @@ int main(){
             // MEASURING FOR APPLE METAL
             auto start = std::chrono::high_resolution_clock::now();
             // std::cout<<"Sending final compute command"<<std::endl;
-            saxpy->sendComputeCommand(NUM_METAL_THREADS_PER_GROUP, saxpy->arrayLength/NUM_METAL_THREADS_PER_GROUP);
+            saxpy->sendComputeCommand();
             // std::cout<<"Final compute command sent"<<std::endl;
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<time_unit>(stop-start).count();
@@ -74,7 +74,7 @@ int main(){
             // MEASURING FOR BLAS
             start = std::chrono::high_resolution_clock::now();
             // std::cout<<"Starting cblas_saxpy"<<std::endl;
-            cblas_saxpy((uint64_t)saxpy->arrayLength, arrayA[0], arrayX, 1, arrayY, 1);
+            // cblas_saxpy((uint64_t)saxpy->arrayLength, arrayA[0], arrayX, 1, arrayY, 1);
             // std::cout<<"cblas_saxpy finished"<<std::endl;
             stop = std::chrono::high_resolution_clock::now();
             duration = std::chrono::duration_cast<time_unit>(stop-start).count();
@@ -91,6 +91,7 @@ int main(){
         float array_mean;
         float array_std;
         statistics(durations, repeats, array_mean, array_std);
+        std::cout<<"******* ARRAY SIZE: "<<size<<"*******"<<std::endl;
         std::cout << "Metal Performance" <<std::endl;
         std::cout << array_mean << unit_name << " \t +/- " << array_std << unit_name << std::endl<< std::endl;
         float array_mean_blas;
