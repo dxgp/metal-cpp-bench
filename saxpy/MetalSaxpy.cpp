@@ -3,7 +3,9 @@
 #include <limits>
 
 
-MetalSaxpy::MetalSaxpy(MTL::Device * device){
+MetalSaxpy::MetalSaxpy(MTL::Device * device, uint64_t arrlen){
+    arrayLength = arrlen;
+    bufferSize = arrayLength * sizeof(float);
     _mDevice = device;
     NS::Error *error = nullptr; // if it fails
 
@@ -64,9 +66,9 @@ void MetalSaxpy::encodeSaxpyCommand(MTL::ComputeCommandEncoder *computeEncoder){
     // if(AvlThreadGroupSize > arrayLength){
     //     AvlThreadGroupSize = arrayLength;
     // }
-
+    // dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup)
     computeEncoder->dispatchThreads(MTL::Size::Make(_mThreadsPerGrid, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
-    // computeEncoder->dispatchThreadgroups(MTL::Size::Make(_mThreadsPerGrid, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
+    // computeEncoder->dispatchThreadgroups(MTL::Size::Make(arrayLength/1024, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
 }
 
 void MetalSaxpy::generateRandomFloatData(MTL::Buffer *buffer){
@@ -84,11 +86,11 @@ void MetalSaxpy::verifyResults(){
     for(uint64_t index = 0;index < arrayLength; index++){
         if(! areEqual(result[index], (x[index] * a[0]) + y[index])){
             std::cout<<"Computation Error Detected"<<std::endl;
-            std::cout<<"result[index] : "<<result[index]<<std::endl;
-            std::cout<<"(x[index] * a[0]) + y[index]"<<((x[index] * a[0]) + y[index])<<std::endl;
-            std::cout<<"x[index]: "<<x[index]<<std::endl;
-            std::cout<<"a[0] : "<<a[0]<<std::endl;
-            std::cout<<"y[index] : "<<y[index]<<std::endl;
+            // std::cout<<"result[index] : "<<result[index]<<std::endl;
+            // std::cout<<"(x[index] * a[0]) + y[index]"<<((x[index] * a[0]) + y[index])<<std::endl;
+            // std::cout<<"x[index]: "<<x[index]<<std::endl;
+            // std::cout<<"a[0] : "<<a[0]<<std::endl;
+            // std::cout<<"y[index] : "<<y[index]<<std::endl;
             abort();
         }
     }
