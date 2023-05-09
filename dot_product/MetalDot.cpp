@@ -19,10 +19,9 @@ MetalDot::MetalDot(MTL::Device *device){
     _mX = _mDevice->newBuffer(bufferSize, MTL::ResourceStorageModeShared);
     _mY = _mDevice->newBuffer(bufferSize, MTL::ResourceStorageModeShared);
     _mR = _mDevice->newBuffer(sizeof(double), MTL::ResourceStorageModeShared);
-    _mPartialSums = _mDevice->newBuffer(sizeof(float) * (_mDevice->maxThreadsPerThreadgroup()).width, MTL::ResourceStorageModeShared);
+    //_mPartialSums = _mDevice->newBuffer(sizeof(float) * (_mDevice->maxThreadsPerThreadgroup()).width, MTL::ResourceStorageModeShared);
+    _mPartialSums = _mDevice->newBuffer(arrayLength*sizeof(float), MTL::ResourceStorageModeShared);
     _mNumElems = _mDevice->newBuffer(sizeof(uint64_t), MTL::ResourceStorageModeShared);
-    // _mThreadPositions = _mDevice->newBuffer(sizeof(unsigned int)*arrayLength, MTL::ResourceStorageModeShared);
-    // _mCounter = _mDevice->newBuffer(sizeof(unsigned int), MTL::ResourceStorageModeShared);
     prepareData();
 }
 
@@ -53,14 +52,7 @@ void MetalDot::encodeDotCommand(MTL::ComputeCommandEncoder *computeEncoder){
     computeEncoder->setBuffer(_mR, 0, 2);
     computeEncoder->setBuffer(_mNumElems, 0, 3);
     computeEncoder->setBuffer(_mPartialSums, 0, 4);
-    // computeEncoder->setBuffer(_mThreadPositions, 0, 5);
-    // computeEncoder->setBuffer(_mCounter, 0, 6);
-    // unsigned int *Z = (unsigned int *) _mCounter->contents();
-    // Z[0] = 0;
-    MTL::Size gridSize = MTL::Size::Make(arrayLength, 1, 1);
-    MTL::Size threadsPerGrid = MTL::Size::Make(1024, 1, 1);
-    // MTL::Size threadsPerThreadGroup = MTL::Size::Make(1024, 1, 1);
-    computeEncoder->dispatchThreads(gridSize, threadsPerGrid);
+    computeEncoder->dispatchThreads(MTL::Size::Make(arrayLength, 1, 1), MTL::Size::Make(1024, 1, 1));
 }
 
 bool MetalDot::areEqual(float a, float b) {
@@ -73,40 +65,21 @@ void MetalDot::verifyResults(){
     float *R = (float *) _mR->contents();
     float *partial_sums = (float *) _mPartialSums->contents();
 
-    // unsigned int *thread_positions = (unsigned int *) _mThreadPositions->contents();
     float partialSum = 0;
     for(uint64_t i = 0; i<arrayLength;i++){
         partialSum += X[i] * Y[i];
     }
     float partialMetal = 0;
-    std::cout<<"Partial Sums : [";
     for(uint64_t i = 0; i<_mPartialSums->length()/sizeof(float); i++){
         partialMetal += partial_sums[i];
-        if(i!= _mPartialSums->length()/sizeof(float) - 1){
-            std::cout<<partial_sums[i]<<",";
-        } else{
-            std::cout<<partial_sums[i]<<"]"<<std::endl;
-        }
     }
-    // GETTING THREAD POSITIONS IS UTTERLY USELESS
-    // std::cout<<"Thread Positions : [";
-    // int threadpos[arrayLength];
-    // for(uint64_t i = 0; i<arrayLength; i++){
-    //     threadpos[i] = thread_positions[i];
-    // }
-    // std::sort(threadpos, threadpos + arrayLength);
-    // for(uint64_t i = 0; i<arrayLength; i++){
-    //     if(i!=arrayLength - 1){
-    //         std::cout<<threadpos[i]<<",";
-    //     } else{
-    //         std::cout<<threadpos[i]<<"]"<<std::endl;
-    //     }
-    // }
     if(!areEqual(partialSum, partialMetal)){
         std::cout<<"Incorrect computation"<<std::endl;
         std::cout<<"Predicted Result: "<<partialSum<<std::endl;
         std::cout<<"Computed Result: "<<partialMetal<<std::endl;
         abort();
+    } else{
+        std::cout<<"Computation verified!"<<std::endl;
     }
 }
 

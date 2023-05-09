@@ -15,9 +15,7 @@ MetalSaxpy::MetalSaxpy(MTL::Device * device, uint64_t arrlen){
     MTL::Function *saxpyFunction = defaultLibrary->newFunction(str);
     defaultLibrary->release();
     assert(saxpyFunction!=nullptr);
-
     _mSaxpyFunctionPSO = _mDevice->newComputePipelineState(saxpyFunction, &error);
-    std::cout<<_mDevice->maxBufferLength()<<std::endl;
     saxpyFunction->release();
     assert(_mSaxpyFunctionPSO!=nullptr);
     _mCommandQueue = _mDevice->newCommandQueue();
@@ -45,6 +43,7 @@ bool MetalSaxpy::areEqual(float a, float b) {
 void MetalSaxpy::sendComputeCommand(){
     _mNumThreadsPerThreadgroup = _mSaxpyFunctionPSO->maxTotalThreadsPerThreadgroup();
     _mThreadsPerGrid = arrayLength;
+    std::cout<<"Max buffer length:"<<_mDevice->maxBufferLength()<<std::endl;
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     assert(commandBuffer != nullptr);
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();

@@ -16,9 +16,6 @@ class MetalDot{
     MTL::Buffer *_mR;
     MTL::Buffer *_mNumElems;
     MTL::Buffer *_mPartialSums; 
-    MTL::Buffer *_mCounter;
-
-    MTL::Buffer *_mThreadPositions; // TESTING
 
     int _mNumGroupsPerGrid;
     int _mNumThreadsPerGroup;

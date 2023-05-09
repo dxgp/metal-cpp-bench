@@ -44,7 +44,7 @@ int main(){
     std::cout<<"Compute command done. Beginning verification"<<std::endl;
     saxpy->verifyResults();
     std::cout<<"Verification complete"<<std::endl;
-    uint64_t sizes[] = {(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
+    uint64_t sizes[] = {(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912, (uint64_t) 636870912, (uint64_t) 836870912};
     int repeats =  100;
     auto durations = new float[repeats];
     auto durations_blas = new float[repeats];
@@ -53,9 +53,8 @@ int main(){
     // -------------------------------------------- METAL TESTING --------------------------------------------
     for(auto size: sizes){
         saxpy = new MetalSaxpy(device, size);
-        for(size_t repeat = 0; repeat<repeats;repeat++){
+        for(size_t repeat = 0; repeat<100;repeat++){
             // NOTE: CHECK HOW NUM_METAL_THREADS_PER_GROUP VARIES FROM PROCESSOR TO PROCESSOR
-
             // MEASURING FOR APPLE METAL
             auto start = std::chrono::high_resolution_clock::now();
             // std::cout<<"Sending final compute command"<<std::endl;
