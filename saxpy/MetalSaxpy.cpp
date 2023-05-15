@@ -43,7 +43,7 @@ bool MetalSaxpy::areEqual(float a, float b) {
 void MetalSaxpy::sendComputeCommand(){
     _mNumThreadsPerThreadgroup = _mSaxpyFunctionPSO->maxTotalThreadsPerThreadgroup();
     _mThreadsPerGrid = arrayLength;
-    std::cout<<"Max buffer length:"<<_mDevice->maxBufferLength()<<std::endl;
+    // std::cout<<"Max buffer length:"<<_mDevice->maxBufferLength()<<std::endl;
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     assert(commandBuffer != nullptr);
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();

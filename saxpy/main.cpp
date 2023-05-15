@@ -7,6 +7,7 @@
 #include "metal-cpp/Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
 #include "MetalSaxpy.hpp"
+#include <fstream>
 // #include "cblas.h"
 
 #include <Accelerate/Accelerate.h>
@@ -44,12 +45,15 @@ int main(){
     std::cout<<"Compute command done. Beginning verification"<<std::endl;
     saxpy->verifyResults();
     std::cout<<"Verification complete"<<std::endl;
-    uint64_t sizes[] = {(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912, (uint64_t) 636870912, (uint64_t) 836870912};
+    // uint64_t sizes[] = {(uint64_t)1024,(uint64_t)2048, (uint64_t) 4096, (uint64_t) 8192, (uint64_t) 16384, (uint64_t) 32768, (uint64_t) 65536, (uint64_t) 131072,(uint64_t)262144,(uint64_t)524288,(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
+    uint64_t sizes[] = {(uint64_t) 8192, (uint64_t) 16384, (uint64_t) 65536,(uint64_t)262144,(uint64_t)524288,(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
     int repeats =  100;
     auto durations = new float[repeats];
     auto durations_blas = new float[repeats];
     auto durations_vdsp = new float[repeats];
-    
+    std::ofstream datafile;
+    datafile.open("data.csv");
+    datafile << "ArraySize,MetalTime,MetalSD,BLASTime,BLASSD,vDSPTime,vDSPSD\n";
     // -------------------------------------------- METAL TESTING --------------------------------------------
     for(auto size: sizes){
         saxpy = new MetalSaxpy(device, size);
@@ -103,6 +107,16 @@ int main(){
         statistics(durations_vdsp, repeats, array_mean_vdsp, array_std_vdsp);
         std::cout << "vDSP Performance" <<std::endl;
         std::cout << array_mean_vdsp << unit_name << " \t +/- " << array_std_vdsp << unit_name << std::endl<< std::endl;
+        std::string writeString = "";
+        writeString += std::to_string(size) + ",";
+        writeString += std::to_string(array_mean) + ",";
+        writeString += std::to_string(array_std) + ",";
+        writeString += std::to_string(array_mean_blas) + ",";
+        writeString += std::to_string(array_std_blas) + ",";
+        writeString += std::to_string(array_mean_vdsp) + ",";
+        writeString += std::to_string(array_std_vdsp) + "\n";
+        datafile << writeString;
     }
-
+    datafile.close();
+    return 0;
 }
