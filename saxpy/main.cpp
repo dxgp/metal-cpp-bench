@@ -99,6 +99,7 @@ int main(){
         float array_mean;
         float array_std;
         printArray(durations, repeats);
+        durations[0] = durations[1];
         statistics<float>(durations, repeats, array_mean, array_std);
         std::cout<<"******* ARRAY SIZE: "<<size<<"*******"<<std::endl;
         std::cout << "Metal Performance" <<std::endl;
@@ -108,6 +109,7 @@ int main(){
         statistics(durations_blas, repeats, array_mean_blas, array_std_blas);
         std::cout << "BLAS Performance" <<std::endl;
         std::cout << array_mean_blas << unit_name << " \t +/- " << array_std_blas << unit_name << std::endl<< std::endl;
+        printArray(durations_blas, repeats);
         float array_mean_vdsp;
         float array_std_vdsp;
         statistics(durations_vdsp, repeats, array_mean_vdsp, array_std_vdsp);

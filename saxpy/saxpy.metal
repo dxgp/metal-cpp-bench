@@ -14,8 +14,5 @@ kernel void saxpy(
     const        uint             thread_position_in_grid [[ thread_position_in_grid ]],
     const        uint             threads_per_grid        [[ threads_per_grid ]]
 ) {
-    for ( uint64_t i = thread_position_in_grid; i < num_elements[0]; i += threads_per_grid ) {
-    
-        R[i] = X[i] * a + Y[i];
-    }
+        R[thread_position_in_grid] = X[thread_position_in_grid] * a + Y[thread_position_in_grid];
 }
