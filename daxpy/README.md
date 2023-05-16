@@ -1,0 +1,1 @@
+While Metal does not support double precision arithmetic naturally, Philip Turner's libMetalFloat64[https://github.com/philipturner/metal-float64] can be used to emulate it. This folder is a reminder to look into this.

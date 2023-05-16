@@ -16,6 +16,5 @@ int main(){
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
     MetalDeMV* demv = new MetalDeMV(device, 4, 3);
     demv->sendComputeCommand();
-    
     return 0;
 }

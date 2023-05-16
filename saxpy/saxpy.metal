@@ -9,10 +9,9 @@ kernel void saxpy(
     device       float*           Y [[ buffer(1) ]],
     device       float&           a [[ buffer(2) ]],
     device       float*           R [[ buffer(3) ]],
-    device       uint64_t *             num_elements [[ buffer(4) ]],
-
-    const        uint             thread_position_in_grid [[ thread_position_in_grid ]],
+    device       uint64_t *       num_elements [[ buffer(4) ]],
+    const        uint             tpig [[ thread_position_in_grid ]],
     const        uint             threads_per_grid        [[ threads_per_grid ]]
 ) {
-        R[thread_position_in_grid] = X[thread_position_in_grid] * a + Y[thread_position_in_grid];
+        R[tpig] = X[tpig] * a + Y[tpig];
 }
