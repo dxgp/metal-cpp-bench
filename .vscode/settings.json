@@ -68,6 +68,12 @@
         "stack": "cpp",
         "numeric": "cpp",
         "random": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "__tree": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "thread": "cpp"
     }
 }

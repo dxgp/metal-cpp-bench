@@ -35,7 +35,12 @@ void statistics(T *array, size_t length, T &array_mean, T &array_std)
 }
 
 auto align_up(int x, int a) { return x + (a - 1) & ~(a - 1); } 
-
+void printArray(float* arr,int size){
+    for(int i=0;i<size;i++){
+        std::cout<<arr[i]<<" ";
+    }
+    std::cout<<std::endl;
+}
 int main(){
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
     MetalSaxpy *saxpy = new MetalSaxpy(device, 60*180*10000);
@@ -93,7 +98,8 @@ int main(){
         // saxpy->verifyResults();
         float array_mean;
         float array_std;
-        statistics(durations, repeats, array_mean, array_std);
+        printArray(durations, repeats);
+        statistics<float>(durations, repeats, array_mean, array_std);
         std::cout<<"******* ARRAY SIZE: "<<size<<"*******"<<std::endl;
         std::cout << "Metal Performance" <<std::endl;
         std::cout << array_mean << unit_name << " \t +/- " << array_std << unit_name << std::endl<< std::endl;

@@ -17,14 +17,6 @@
 typedef std::chrono::microseconds time_unit;
 auto unit_name = "microseconds";
 
-void metalCaptureStart(const MTL::Device* device){
-    MTL::CaptureManager *captureManager = MTL::CaptureManager::sharedCaptureManager();
-    if (captureManager->supportsDestination(MTL::CaptureDestinationDeveloperTools)) {
-        captureManager->startCapture(device);
-    }
-}
-
-
 template <class T>
 void statistics(T *array, size_t length, T &array_mean, T &array_std)
 {
@@ -43,6 +35,28 @@ void statistics(T *array, size_t length, T &array_mean, T &array_std)
     array_std /= length;
     array_std = pow(array_std, 0.5);
 }
+
+float Variance(float* samples, int n)
+{
+     int size = n;
+
+     float variance = 0;
+     float t = samples[0];
+     for (int i = 1; i < size; i++)
+     {
+          t += samples[i];
+          float diff = ((i + 1) * samples[i]) - t;
+          variance += (diff * diff) / ((i + 1.0) *i);
+     }
+
+     return variance / (size - 1);
+}
+float StandardDeviation(float* samples, int n)
+{
+     return sqrt(Variance(samples, n));
+}
+
+
 
 auto align_up(int x, int a) { return x + (a - 1) & ~(a - 1); } 
 
@@ -93,18 +107,18 @@ int main(){
         }
         float array_mean;
         float array_std;
-        statistics(durations, repeats, array_mean, array_std);
+        statistics<float>(durations, repeats, array_mean, array_std);
         std::cout<<"******* ARRAY SIZE: "<<size<<"*******"<<std::endl;
         std::cout << "Metal Performance" <<std::endl;
-        std::cout << array_mean << unit_name << " \t +/- " << array_std << unit_name << std::endl<< std::endl;
+        std::cout << array_mean << unit_name << " \t +/- " << array_std << unit_name << " \t +/- " << StandardDeviation(durations, repeats)<<std::endl<< std::endl;
         float array_mean_blas;
         float array_std_blas;
-        statistics(durations_blas, repeats, array_mean_blas, array_std_blas);
+        statistics<float>(durations_blas, repeats, array_mean_blas, array_std_blas);
         std::cout << "BLAS Performance" <<std::endl;
         std::cout << array_mean_blas << unit_name << " \t +/- " << array_std_blas << unit_name << std::endl<< std::endl;
         float array_mean_vdsp;
         float array_std_vdsp;
-        statistics(durations_vdsp, repeats, array_mean_vdsp, array_std_vdsp);
+        statistics<float>(durations_vdsp, repeats, array_mean_vdsp, array_std_vdsp);
         std::cout << "vDSP Performance" <<std::endl;
         std::cout << array_mean_vdsp << unit_name << " \t +/- " << array_std_vdsp << unit_name << std::endl<< std::endl;
         std::string writeString = "";
