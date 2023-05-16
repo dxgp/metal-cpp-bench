@@ -1,10 +1,13 @@
 #include "MetalDot.hpp"
 #include <iostream>
 #include <limits>
-
-MetalDot::MetalDot(MTL::Device *device){
+MetalDot::MetalDot(MTL::Device *device, uint64_t arrlen){
+    arrayLength = arrlen;
+    bufferSize = arrayLength * sizeof(float);
     _mDevice = device;
     NS::Error *error = nullptr;
+    // function to capture device frame metal
+    
     MTL::Library *defaultLibrary = _mDevice->newDefaultLibrary();
     assert(defaultLibrary != nullptr);
     auto str = NS::String::string("dot", NS::ASCIIStringEncoding);
@@ -18,7 +21,7 @@ MetalDot::MetalDot(MTL::Device *device){
     assert(_mCommandQueue!=nullptr);
     _mX = _mDevice->newBuffer(bufferSize, MTL::ResourceStorageModeShared);
     _mY = _mDevice->newBuffer(bufferSize, MTL::ResourceStorageModeShared);
-    _mR = _mDevice->newBuffer(sizeof(double), MTL::ResourceStorageModeShared);
+    _mR = _mDevice->newBuffer(sizeof(float), MTL::ResourceStorageModeShared);
     //_mPartialSums = _mDevice->newBuffer(sizeof(float) * (_mDevice->maxThreadsPerThreadgroup()).width, MTL::ResourceStorageModeShared);
     _mPartialSums = _mDevice->newBuffer(arrayLength*sizeof(float), MTL::ResourceStorageModeShared);
     _mNumElems = _mDevice->newBuffer(sizeof(uint64_t), MTL::ResourceStorageModeShared);
@@ -32,9 +35,9 @@ void MetalDot::prepareData(){
     dataptr[0] = arrayLength;
 }
 
-void MetalDot::sendComputeCommand(int num_metal_threadgroups_per_grid, int num_groups_per_grid){
-    _mNumThreadsPerGroup = num_metal_threadgroups_per_grid;
-    _mNumGroupsPerGrid = num_groups_per_grid;
+void MetalDot::sendComputeCommand(){
+    _mNumThreadsPerThreadgroup = _mDotFunctionPSO->maxTotalThreadsPerThreadgroup();
+    _mThreadsPerGrid = arrayLength;
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     assert(commandBuffer!=nullptr);
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
@@ -52,7 +55,7 @@ void MetalDot::encodeDotCommand(MTL::ComputeCommandEncoder *computeEncoder){
     computeEncoder->setBuffer(_mR, 0, 2);
     computeEncoder->setBuffer(_mNumElems, 0, 3);
     computeEncoder->setBuffer(_mPartialSums, 0, 4);
-    computeEncoder->dispatchThreads(MTL::Size::Make(arrayLength, 1, 1), MTL::Size::Make(1024, 1, 1));
+    computeEncoder->dispatchThreads(MTL::Size::Make(_mThreadsPerGrid, 1, 1), MTL::Size::Make(_mNumThreadsPerThreadgroup, 1, 1));
 }
 
 bool MetalDot::areEqual(float a, float b) {
@@ -65,6 +68,7 @@ void MetalDot::verifyResults(){
     float *R = (float *) _mR->contents();
     float *partial_sums = (float *) _mPartialSums->contents();
 
+    // std::cout<<"Made it here"<<std::endl;
     float partialSum = 0;
     for(uint64_t i = 0; i<arrayLength;i++){
         partialSum += X[i] * Y[i];

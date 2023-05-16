@@ -62,6 +62,12 @@
         "compare": "cpp",
         "concepts": "cpp",
         "algorithm": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "stack": "cpp",
+        "numeric": "cpp",
+        "random": "cpp",
+        "core": "cpp"
     }
 }
