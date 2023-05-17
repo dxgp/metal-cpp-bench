@@ -23,6 +23,7 @@ void printVector(float *vec, uint64_t length){
 MetalDeMV::MetalDeMV(MTL::Device *device, uint64_t nrows, uint64_t ncols){
     uint64_t bufferLengthMatrix = nrows*ncols*sizeof(float);
     uint64_t bufferLengthVector = ncols*sizeof(float);
+    matData = new float[nrows*ncols];
     _mDevice = device;
     numRows = nrows;
     numCols = ncols;
@@ -30,7 +31,7 @@ MetalDeMV::MetalDeMV(MTL::Device *device, uint64_t nrows, uint64_t ncols){
     // create the default library
     MTL::Library* lib = _mDevice->newDefaultLibrary();
     assert(lib!=nullptr);
-    MTL::Function *demv = lib->newFunction(NS::String::string("denseMV",NS::ASCIIStringEncoding));
+    MTL::Function *demv = lib->newFunction(NS::String::string("dot",NS::ASCIIStringEncoding));
     lib->release();
     assert(demv!=nullptr);
     _mComputePSO = _mDevice->newComputePipelineState(demv, &error);
@@ -38,61 +39,93 @@ MetalDeMV::MetalDeMV(MTL::Device *device, uint64_t nrows, uint64_t ncols){
     assert(_mComputePSO!=nullptr);
     _mCommandQueue = _mDevice->newCommandQueue();
     assert(_mCommandQueue!=nullptr);
-    _mM = _mDevice->newBuffer(bufferLengthMatrix, MTL::ResourceStorageModeShared);
+    //_mM = _mDevice->newBuffer(bufferLengthMatrix, MTL::ResourceStorageModeShared);
+    for(int i=0;i<numRows;i++){
+        _mMatBuffers.push_back(_mDevice->newBuffer(bufferLengthVector, MTL::ResourceStorageModeShared));
+    }
     _mX = _mDevice->newBuffer(bufferLengthVector, MTL::ResourceStorageModeShared);
     _mR = _mDevice->newBuffer(bufferLengthVector, MTL::ResourceStorageModeShared);
-    _mMatSize = _mDevice->newBuffer(sizeof(uint64_t)*2, MTL::ResourceStorageModeShared);
+    _mMatSize = _mDevice->newBuffer(sizeof(uint64_t), MTL::ResourceStorageModeShared);
+    _mPartialSums = _mDevice->newBuffer(sizeof(float)*numCols, MTL::ResourceStorageModeShared);
     // data generation
     prepareData();
 }
 void MetalDeMV::prepareData(){
-    genRandomMatrix(numRows, numCols, 0.7, _mM);
+    //genRandomMatrix(numRows, numCols, 0.7, _mM);
     genRandomMatrix(numCols, 1, 1, _mX);
+    for(int i=0;i<numRows;i++){
+        genRandomMatrix(numCols, 1, 1, _mMatBuffers[i]);
+    }
     uint64_t *matsize = (uint64_t*)_mMatSize->contents();
-    matsize[0] = numRows;
-    matsize[1] = numCols;
+    matsize[0] = numCols;
 }
 void MetalDeMV::sendComputeCommand(){
-    
-    MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
-    assert(commandBuffer!=nullptr);
-    MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
-    assert(computeEncoder!=nullptr);
-    encodeDeMVCommand(computeEncoder);
-    computeEncoder->endEncoding();
-    commandBuffer->commit();
-    commandBuffer->waitUntilCompleted();
-    verifyResults();
+    for(int i=0;i<numRows;i++){
+        MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
+        assert(commandBuffer!=nullptr);
+        MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();
+        computeEncoder->setComputePipelineState(_mComputePSO);
+        computeEncoder->setBuffer(_mMatBuffers[i], 0, 0);
+        computeEncoder->setBuffer(_mX, 0, 1);
+        computeEncoder->setBuffer(_mR, 0, 2);
+        computeEncoder->setBuffer(_mMatSize, 0, 3);
+        computeEncoder->setBuffer(_mPartialSums, 0, 4);
+        int maxRoof = 0;
+        if((numCols)<_mComputePSO->maxTotalThreadsPerThreadgroup()){
+            maxRoof = numCols;
+        } else{
+            maxRoof = _mComputePSO->maxTotalThreadsPerThreadgroup();
+        }
+        computeEncoder->dispatchThreads(MTL::Size::Make(numCols, 1, 1), MTL::Size::Make(maxRoof, 1, 1));
+        computeEncoder->endEncoding();
+        commandBuffer->commit();
+        commandBuffer->waitUntilCompleted();
+        // float sum = 0;
+        // float *partialSums = (float*)_mPartialSums->contents();
+        // for(int j=0;j<numCols;j++){
+        //     sum += partialSums[j];
+        // }
+        // results.push_back(sum);
+        // std::cout<<"Made it to this point!"<<std::endl;
+    }
+    //assert(computeEncoder!=nullptr);
+    // verifyResults();
 }
 void MetalDeMV::verifyResults(){
-    float *m = (float*)_mM->contents();
     float *x = (float*)_mX->contents();
-    float *r = (float*)_mR->contents();
+    // float *r = (float*)_mR->contents();
     std::vector<float> res;
-    res.resize(numCols);
-    for(int i=0;i<numRows*numCols; i++){
-        int colIndex = i%numCols;
-        int rowIndex = (i - colIndex)/numCols;
-        res[rowIndex] += m[i]*x[colIndex];
+    std::vector<float> computed;
+    for(int i=0;i<numRows;i++){
+        float *m = (float*)_mMatBuffers[i]->contents();
+        float sum = 0;
+        for(int j=0;j<numCols;j++){
+            sum += m[j]*x[j];
+        }
+        res.push_back(sum);
     }
+    
+    std::cout<<"Expected:";
     printVector(res.data(), res.size());
+    std::cout<<"Actual:";
+    printVector(results.data(), results.size());
 }
-void MetalDeMV::encodeDeMVCommand(MTL::ComputeCommandEncoder *computeEncoder){
-    computeEncoder->setComputePipelineState(_mComputePSO);
-    computeEncoder->setBuffer(_mM, 0, 0);
-    computeEncoder->setBuffer(_mX, 0, 1);
-    computeEncoder->setBuffer(_mR, 0, 2);
-    computeEncoder->setBuffer(_mMatSize, 0, 3);
-    int maxRoof = 0;
-    std::cout<<"Execution Width:"<<_mComputePSO->threadExecutionWidth()<<std::endl;
-    std::cout<<"Execution Width:"<<_mDevice->
-    if((numRows*numCols)<_mComputePSO->maxTotalThreadsPerThreadgroup()){
-        maxRoof = numRows*numCols;
-    } else{
-        maxRoof = _mComputePSO->maxTotalThreadsPerThreadgroup();
-    }
-    computeEncoder->dispatchThreads(MTL::Size::Make(numRows, numCols, 1), MTL::Size::Make(1, 1, 1));
-}
+// void MetalDeMV::encodeDeMVCommand(MTL::ComputeCommandEncoder *computeEncoder){
+//     computeEncoder->setComputePipelineState(_mComputePSO);
+//     computeEncoder->setBuffer(_mM, 0, 0);
+//     computeEncoder->setBuffer(_mX, 0, 1);
+//     computeEncoder->setBuffer(_mR, 0, 2);
+//     computeEncoder->setBuffer(_mMatSize, 0, 3);
+//     int maxRoof = 0;
+//     std::cout<<"Execution Width:"<<_mComputePSO->threadExecutionWidth()<<std::endl;
+//     std::cout<<"Execution Width:"<<_mDevice->
+//     if((numRows*numCols)<_mComputePSO->maxTotalThreadsPerThreadgroup()){
+//         maxRoof = numRows*numCols;
+//     } else{
+//         maxRoof = _mComputePSO->maxTotalThreadsPerThreadgroup();
+//     }
+//     computeEncoder->dispatchThreads(MTL::Size::Make(numRows, numCols, 1), MTL::Size::Make(1, 1, 1));
+// }
 
 
 
@@ -109,17 +142,20 @@ void MetalDeMV::genRandomMatrix(uint64_t nrows, uint64_t ncols, float density, M
     g();
     for(uint64_t i=0;i<dataLen;i++){
         if(i<dataLen*density){
-            data[i] = (float)rand() / (float)(RAND_MAX);
+            float gen_dat = (float)rand() / (float)(RAND_MAX);
+            data[i] = gen_dat;
+            matData[i] = gen_dat;
         } else{
             data[i] = 0;
+            matData[i] = 0;
         }
     }
     if(density!=1){
         std::shuffle(&data[0], &data[dataLen - 1], g);
     }
-    std::cout<<"<";
-    for(int i=0;i<dataLen- 1;i++){
-        std::cout<<data[i]<<",";
-    }
-    std::cout<<data[dataLen - 1]<<">"<<std::endl;
+    // std::cout<<"<";
+    // for(int i=0;i<dataLen- 1;i++){
+    //     std::cout<<data[i]<<",";
+    // }
+    // std::cout<<data[dataLen - 1]<<">"<<std::endl;
 }

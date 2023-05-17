@@ -13,9 +13,14 @@ class MetalDeMV{
     MTL::Buffer* _mM; // the matrix is here
     MTL::Buffer* _mX; // the vector is here
     MTL::Buffer* _mR; // the result vector
+    MTL::Buffer* _mPartialSums;
+    std::vector<MTL::Buffer*> _mMatBuffers;
+    std::vector<MTL::ComputeCommandEncoder*> _mComputeEncoders;
+    std::vector<float> results;
     MTL::Buffer* _mMatSize;
     int numRows;
     int numCols;
+    float * matData;
     MetalDeMV(MTL::Device* device, uint64_t nrows, uint64_t ncols);
     bool areEqual(float a, float b);
     void prepareData();
