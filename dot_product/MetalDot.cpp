@@ -38,7 +38,6 @@ void MetalDot::prepareData(){
 void MetalDot::sendComputeCommand(){
     _mNumThreadsPerThreadgroup = _mDotFunctionPSO->maxTotalThreadsPerThreadgroup();
     _mThreadsPerGrid = arrayLength;
-    std::cout<<"Command buffer created"<<std::endl;
     MTL::CommandBuffer *commandBuffer = _mCommandQueue->commandBuffer();
     assert(commandBuffer!=nullptr);
     MTL::ComputeCommandEncoder *computeEncoder = commandBuffer->computeCommandEncoder();

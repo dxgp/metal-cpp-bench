@@ -12,9 +12,8 @@ kernel void dot(
     const uint threads_per_grid         [[threads_per_grid]]
 ){
     float sum = 0;
-    for(uint64_t i = thread_position_in_grid; i<num_elements[0]; i+= threads_per_grid){
-        sum += X[i] * Y[i];
-    }
+    sum += X[thread_position_in_grid] * Y[thread_position_in_grid];
     threadgroup_barrier( mem_flags::mem_device );
     partial_sums[thread_position_in_grid] = sum;
+
 }
