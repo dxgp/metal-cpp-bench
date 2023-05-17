@@ -7,7 +7,7 @@ kernel void denseMV(
 
     device const float*           M [[ buffer(0) ]],
     device       float*           X [[ buffer(1) ]],
-    device       float*           R [[ buffer(2) ]],
+    device       atomic_float*           R [[ buffer(2) ]],
     device       uint64_t*           MatSize [[ buffer(3) ]],
     device       uint64_t *             num_elements [[ buffer(4) ]],
 
