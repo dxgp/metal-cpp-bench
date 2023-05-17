@@ -1,15 +1,8 @@
-#include <iostream>
-#define NS_PRIVATE_IMPLEMENTATION
-#define CA_PRIVATE_IMPLEMENTATION
-#define MTL_PRIVATE_IMPLEMENTATION
-
-#include "metal-cpp/Foundation/Foundation.hpp"
-#include "metal-cpp/Metal/Metal.hpp"
-#include "QuartzCore/QuartzCore.hpp"
-#include "MetalDot.hpp"
-// #include "cblas.h"
-
+#include "../common/cpp_single.hpp"
+#include "MetalHadamard.hpp"
+#include <fstream>
 #include <Accelerate/Accelerate.h>
+
 
 typedef std::chrono::microseconds time_unit;
 auto unit_name = "microseconds";
@@ -37,7 +30,11 @@ auto align_up(int x, int a) { return x + (a - 1) & ~(a - 1); }
 
 int main(){
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
-    MetalHadamard *prod = new MetalHadamard(device, );
-
+    MetalHadamard *prod = new MetalHadamard(device, 10, 10);
+    auto start = std::chrono::high_resolution_clock::now();
+    prod->sendComputeCommand();
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<time_unit>(stop-start).count();
+    std::cout<<"Duration: "<<duration<<unit_name<<std::endl;
     return 0;
 }

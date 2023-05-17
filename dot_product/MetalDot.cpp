@@ -1,6 +1,8 @@
 #include "MetalDot.hpp"
 #include <iostream>
 #include <limits>
+
+
 MetalDot::MetalDot(MTL::Device *device, uint64_t arrlen){
     arrayLength = arrlen;
     bufferSize = arrayLength * sizeof(float);

@@ -1,7 +1,4 @@
-#pragma once
-
-#include "metal-cpp/Foundation/Foundation.hpp"
-#include "metal-cpp/Metal/Metal.hpp"
+#include "../common/hpp_single.hpp"
 
 class MetalDeMV{
     public:

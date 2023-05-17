@@ -1,10 +1,6 @@
 #pragma once
 
-#include "metal-cpp/Foundation/Foundation.hpp"
-#include "metal-cpp/Metal/Metal.hpp"
-#include <vector>
-#include <iostream>
-
+#include "../common/hpp_single.hpp"
 
 void printVector(std::vector<int> v, std::string vname){
     std::cout<<vname<<": [";

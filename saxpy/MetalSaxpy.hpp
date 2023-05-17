@@ -1,7 +1,4 @@
-#pragma once
-
-#include "metal-cpp/Foundation/Foundation.hpp"
-#include "metal-cpp/Metal/Metal.hpp"
+#include "../common/hpp_single.hpp"
 
 // unsigned int arrayLength = 60*180*10000; //same as num elements
 // unsigned int bufferSize = arrayLength * sizeof(float);

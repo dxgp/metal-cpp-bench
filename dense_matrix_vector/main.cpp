@@ -1,11 +1,4 @@
-#include <iostream>
-#define NS_PRIVATE_IMPLEMENTATION
-#define CA_PRIVATE_IMPLEMENTATION
-#define MTL_PRIVATE_IMPLEMENTATION
-
-#include "metal-cpp/Foundation/Foundation.hpp"
-#include "metal-cpp/Metal/Metal.hpp"
-#include "QuartzCore/QuartzCore.hpp"
+#include "../common/cpp_single.hpp"
 #include "MetalDeMV.hpp"
 #include <fstream>
 // #include "cblas.h"
@@ -18,7 +11,7 @@ auto align_up(int x, int a) { return x + (a - 1) & ~(a - 1); }
 
 int main(){
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
-    MetalDeMV* demv = new MetalDeMV(device, 1000, 5000000);
+    MetalDeMV* demv = new MetalDeMV(device, 512, 512);
     auto start = std::chrono::high_resolution_clock::now();
     demv->sendComputeCommand();
     auto stop = std::chrono::high_resolution_clock::now();
