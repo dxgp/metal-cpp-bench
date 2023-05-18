@@ -32,7 +32,6 @@ void MetalHadamard::verifyResults(){
             exit(1);
         }
     }
-    std::cout<<"Results verified"<<std::endl;
 }
 void MetalHadamard::encodeHadamardCommand(MTL::ComputeCommandEncoder* encoder){
     encoder->setComputePipelineState(_mComputePSO);
@@ -59,6 +58,7 @@ void MetalHadamard::generateRandomFloatData(MTL::Buffer* buffer){
         ptr[i] = (float)rand()/(float)RAND_MAX;
     }
 }
+
 void MetalHadamard::sendComputeCommand(){
     MTL::CommandBuffer* commandBuffer = _mCommandQueue->commandBuffer();
     MTL::ComputeCommandEncoder* computeEncoder = commandBuffer->computeCommandEncoder();
@@ -66,5 +66,4 @@ void MetalHadamard::sendComputeCommand(){
     computeEncoder->endEncoding();
     commandBuffer->commit();
     commandBuffer->waitUntilCompleted();
-    verifyResults();
 }
