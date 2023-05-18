@@ -2,7 +2,7 @@
 
 using namespace metal;
 
-constant int tileSize = 2; // Tile size for tiling
+constant int tileSize = 32; // Tile size for tiling
 
 
 kernel void matrixMultiply(
@@ -39,7 +39,6 @@ kernel void matrixMultiply(
         for(int i=0; i<tileSize; i++){
             cvalue += tileA[threadIdx.y][i] * tileB[i][threadIdx.x];
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
     }
     if(row<n && col<n){
         C[row*n + col] = cvalue;

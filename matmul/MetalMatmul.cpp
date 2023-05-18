@@ -8,7 +8,29 @@ void printMTLBuffer(MTL::Buffer *buf, std::string name){
     std::cout<<ptr[buf->length()/sizeof(float) - 1]<<">";
     std::cout<<std::endl;
 }
-
+bool MetalMatmul::areEqual(float a, float b) {
+    return (fabs(a - b) <= FLT_EPSILON * std::max(1.0f, std::max(a, b)));
+}
+void MetalMatmul::verifyResults(){
+    float *m1 = (float *)_mM1->contents();
+    float *m2 = (float *)_mM2->contents();
+    float *r = (float *)_mR->contents();
+    for(int i=0;i<mat_size;i++){
+        for(int j=0;j<mat_size;j++){
+            float sum = 0;
+            for(int k=0;k<mat_size;k++){
+                sum += m1[i*mat_size + k] * m2[k*mat_size + j];
+            }
+            if(!areEqual(sum, r[i*mat_size + j])){
+                std::cout<<"Error at "<<i<<","<<j<<std::endl;
+                std::cout<<"Expected: "<<sum<<std::endl;
+                std::cout<<"Actual: "<<r[i*mat_size + j]<<std::endl;
+                return;
+            }
+        }
+    }
+    std::cout<<"Results verified"<<std::endl;
+}
 MetalMatmul::MetalMatmul(MTL::Device* device, int mat_size){
     this->mat_size = mat_size;
     bufferLength = mat_size * mat_size * sizeof(float);
@@ -28,7 +50,6 @@ MetalMatmul::MetalMatmul(MTL::Device* device, int mat_size){
 }
 
 void MetalMatmul::sendComputeCommand(){
-    std::cout<<"sending compute command"<<std::endl;
     MTL::CommandBuffer* commandBuffer = _mCommandQueue->commandBuffer();
     MTL::ComputeCommandEncoder* enc = commandBuffer->computeCommandEncoder();
     enc->setComputePipelineState(_mMatmulFunctionPSO);
@@ -36,14 +57,14 @@ void MetalMatmul::sendComputeCommand(){
     enc->setBuffer(_mM2, 0, 1);
     enc->setBuffer(_mR, 0, 2);
     enc->setBuffer(_mMatSize, 0, 3);
-    enc->dispatchThreadgroups(MTL::Size::Make(mat_size/2 + 1, mat_size/2 + 1, 1), MTL::Size::Make(2, 2, 1));
+    enc->dispatchThreadgroups(MTL::Size::Make(mat_size/32 + 1, mat_size/32 + 1, 1), MTL::Size::Make(32, 32, 1));
     enc->endEncoding();
     commandBuffer->commit();
     commandBuffer->waitUntilCompleted();
 
-    printMTLBuffer(_mM1, "Mat 1");
-    printMTLBuffer(_mM2, "Mat 2");
-    printMTLBuffer(_mR, "Result");
+    // printMTLBuffer(_mM1, "Mat 1");
+    // printMTLBuffer(_mM2, "Mat 2");
+    // printMTLBuffer(_mR, "Result");
 }
 
 void MetalMatmul::prepareData(){

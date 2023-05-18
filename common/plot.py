@@ -17,12 +17,19 @@ plt.xscale("log", base=10)
 plt.yscale("linear")
 plt.grid('on')
 # plt.xscale("linear")
+
 plt.semilogy(data["ArraySize"], data["MetalTime"]/1000, marker='o', label="metal")
-plt.semilogy(data["ArraySize"], data["BLASTime"]/1000, marker='o', label="blas")
-plt.semilogy(data["ArraySize"], data["vDSPTime"]/1000, marker='o', label="vDSP")
+if(not ((data['vDSPTime'] == 0).all())):
+    plt.semilogy(data["ArraySize"], data["vDSPTime"]/1000, marker='o', label="vDSP")
+if(not ((data['BLASTime'] == 0).all())):
+    plt.semilogy(data["ArraySize"], data["BLASTime"]/1000, marker='o', label="blas")
+
 plt.legend()
 plt.title(sys.argv[2] + " (" + pname + ")")
-plt.xlabel("Vec. Size")
+if(sys.argv[2] == "hadamard_product"):
+    plt.xlabel("n")
+else:
+    plt.xlabel("Vec. Size")
 plt.ylabel("[ms]")
 plt.savefig("../"+sys.argv[2] + "/" + "plot.png", dpi=300)
 plt.show()

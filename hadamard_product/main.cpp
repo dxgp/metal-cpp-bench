@@ -56,7 +56,7 @@ int main(){
     auto duration = std::chrono::duration_cast<time_unit>(stop-start).count();
 
     std::cout<<"Duration: "<<duration<<unit_name<<std::endl;
-    uint64_t sizes[] = {1024, 2048, 4096, 8192, 16384, 32768, 65536};
+    uint64_t sizes[] = {(uint64_t) 32, (uint64_t) 64, (uint64_t) 128, (uint64_t) 256, (uint64_t) 512, (uint64_t)1024,(uint64_t)2048,(uint64_t)4096, (uint64_t)8192,(uint64_t) 16384, (uint64_t) 32768, (uint64_t) 65536,(uint64_t)262144,(uint64_t)524288};
     //uint64_t sizes[] = {(uint64_t) 8192, (uint64_t) 16384, (uint64_t) 65536,(uint64_t)262144,(uint64_t)524288,(uint64_t)1048576, (uint64_t)134217728,(uint64_t) 268435456, (uint64_t) 536870912};
     int repeats =  100;
     auto durations = new float[repeats];
@@ -80,11 +80,11 @@ int main(){
             auto arrayM1 = ((float *) prod->_mM1->contents());
             auto arrayM2 = ((float *) prod->_mM2->contents());
             auto arrayR = ((float *) prod->_mR->contents());
-            float *arrayBlasR = new float[size*size];
+            
 
             // MEASURING FOR vDSP
             start = std::chrono::high_resolution_clock::now();
-            hadamard_vdsp(arrayM1, arrayM2, arrayBlasR, size);
+            //hadamard_vdsp(arrayM1, arrayM2, arrayR, size);
             stop = std::chrono::high_resolution_clock::now();
             duration = std::chrono::duration_cast<time_unit>(stop-start).count();
             durations_vdsp[repeat] = duration;

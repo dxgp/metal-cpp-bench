@@ -13,7 +13,6 @@ MetalHadamard::MetalHadamard(MTL::Device* device, int numRows, int numCols){
     _mM1 = _mDevice->newBuffer(bufferLength, MTL::ResourceStorageModeShared);
     _mM2 = _mDevice->newBuffer(bufferLength, MTL::ResourceStorageModeShared);
     _mR = _mDevice->newBuffer(bufferLength, MTL::ResourceStorageModeShared);
-    
     prepareData();
 }
 bool MetalHadamard::areEqual(float a, float b) {
