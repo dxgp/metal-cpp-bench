@@ -51,7 +51,7 @@ MetalDeMV::MetalDeMV(MTL::Device *device, uint64_t nrows, uint64_t ncols){
     prepareData();
 }
 void MetalDeMV::prepareData(){
-    //genRandomMatrix(numRows, numCols, 0.7, _mM);
+    // genRandomMatrix(numRows, numCols, 0.7, _mM);
     genRandomMatrix(numCols, 1, 1, _mX);
     for(int i=0;i<numRows;i++){
         genRandomMatrix(numCols, 1, 1, _mMatBuffers[i]);

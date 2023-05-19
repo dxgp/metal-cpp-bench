@@ -70,7 +70,7 @@ int main(){
             auto arrayX = ((float *) saxpy->_mX->contents());
             auto arrayY = ((float *) saxpy->_mY->contents());
             auto arrayA = ((float *) saxpy->_ma->contents());
-            // std::cout<<"Arrays retrieved. Starting calc for BLAS"<<std::endl;
+            std::cout<<"Arrays retrieved. Starting calc for BLAS"<<std::endl;
             // MEASURING FOR BLAS
             start = std::chrono::high_resolution_clock::now();
             // std::cout<<"Starting cblas_saxpy"<<std::endl;
@@ -91,7 +91,6 @@ int main(){
         // saxpy->verifyResults();
         float array_mean;
         float array_std;
-        printArray(durations, repeats);
         statistics<float>(durations, repeats, array_mean, array_std);
         std::cout<<"******* ARRAY SIZE: "<<size<<"*******"<<std::endl;
         std::cout << "Metal Performance" <<std::endl;
@@ -101,7 +100,6 @@ int main(){
         statistics<float>(durations_blas, repeats, array_mean_blas, array_std_blas);
         std::cout << "BLAS Performance" <<std::endl;
         std::cout << array_mean_blas << unit_name << " \t +/- " << array_std_blas << unit_name << std::endl<< std::endl;
-        printArray(durations_blas, repeats);
         float array_mean_vdsp;
         float array_std_vdsp;
         statistics<float>(durations_vdsp, repeats, array_mean_vdsp, array_std_vdsp);

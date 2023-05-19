@@ -45,21 +45,21 @@ int main(){
         auto arrayM1 = ((float *) met->_mM1->contents());
         auto arrayM2 = ((float *) met->_mM2->contents());
         auto arrayR = ((float *) met->_mR->contents());
-        for(size_t repeat = 0; repeat<2;repeat++){
+        for(size_t repeat = 0; repeat<5;repeat++){
             auto start = std::chrono::high_resolution_clock::now();
             met->sendComputeCommand();
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<time_unit>(stop-start).count();
             durations[repeat] = duration;
         }
-        for(size_t repeat = 0; repeat<100;repeat++){
+        for(size_t repeat = 0; repeat<5;repeat++){
             auto start = std::chrono::high_resolution_clock::now();
             cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, size, size, size, 1.0, arrayM1, size, arrayM2, size, 0.0, arrayR, size);
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<time_unit>(stop-start).count();
             durations_blas[repeat] = duration;
         }
-        for(size_t repeat = 0; repeat<100;repeat++){
+        for(size_t repeat = 0; repeat<5;repeat++){
             auto start = std::chrono::high_resolution_clock::now();
             vDSP_mmul(arrayM1, 1, arrayM2, 1, arrayR, 1, size, size, size);
             auto stop = std::chrono::high_resolution_clock::now();

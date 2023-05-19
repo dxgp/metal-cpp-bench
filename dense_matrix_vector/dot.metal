@@ -15,5 +15,4 @@ kernel void dot(
     sum += X[thread_position_in_grid] * Y[thread_position_in_grid];
     threadgroup_barrier( mem_flags::mem_device );
     partial_sums[thread_position_in_grid] = sum;
-
 }
